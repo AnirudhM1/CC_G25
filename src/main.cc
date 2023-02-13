@@ -9,8 +9,8 @@
 #include "ast.hh"
 #include "llvmcodegen.hh"
 
-extern FILE *yyin;
-extern int yylex();
+extern FILE *yyin , *yyout , *prin , *prout;
+extern int yylex() , prlex();
 extern char *yytext;
 
 NodeStmts *final_values;
@@ -49,7 +49,8 @@ int parse_arguments(int argc, char *argv[]) {
 	return ARG_FAIL;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[]) 
+{
 	int arg_option = parse_arguments(argc, argv);
 	if (arg_option == ARG_FAIL) {
 		exit(1);
@@ -63,7 +64,12 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-	yyin = source;
+	prin = source; 
+	prout = freopen("output.be", "w", stdout);
+	prlex();
+	fclose(prin); fclose(prout);
+
+	yyin = fopen("output.be", "r");
 
 	if (arg_option == ARG_OPTION_L) {
 		extern std::string token_to_string(int token, const char *lexeme);

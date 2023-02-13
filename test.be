@@ -1,2 +1,4 @@
-let abc = 123 * 20 + 20 + (22 / 2) - 3;
-dbg abc + abc;
+#def a 1
+#def b
+dbg b+a;
+
