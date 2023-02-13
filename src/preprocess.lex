@@ -17,18 +17,19 @@ extern int prerror(std::string msg);
 %}
 
 %%
- 
+
 "//".*    { }
 [/][*][^*]*[*]+([^*/][^*]*[*]+)*[/]       { }
 [/][*]    {yy_fatal_error("Comment not terminated");}
-"#def"[ ]+[a-zA-Z]+[ a-zA-Z0-9+-/*();=]* {
+"#def"[ ]+[a-zA-Z]+([ a-zA-Z0-9+-/*();=]*\\[ ]*\n)*[ a-zA-Z0-9+-/*();=]+ {
     std::string s = std::string(yytext);
     std::string key = "";
- 
+
+    // fprintf(prout, "%s", yytext);  
     int i=4;
     while(s[i] == ' ')
         i++;
- 
+      
     while (i < (int)s.size() and s[i] != ' ') {
         key += s[i];
         i++;
@@ -40,7 +41,11 @@ extern int prerror(std::string msg);
     std::string value = "";
     std::string TempString = "";
     for( ; i<(int)s.size() ; i++){
-        if(!((s[i] >= 'a' and s[i] <= 'z') or (s[i] >= 'A' and s[i] <= 'Z'))){
+        if(!((s[i] >= 'a' and s[i] <= 'z') or (s[i] >= 'A' and s[i] <= 'Z'))){   
+            if(s[i]=='\\')
+            {
+                while(s[i]!='\n') i++;
+            }               
             if(TempString.size() > 0){
                 if(hashmap.find(TempString) != hashmap.end()){
                     if(hashmap[TempString] == key)
