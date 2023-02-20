@@ -1,4 +1,6 @@
-#def a 1
-#def b
-dbg b+a;
-
+#def DEBUG 10
+let x = 5;
+#undef DEBUG
+#ifdef DEBUG
+dbg x;
+#endif

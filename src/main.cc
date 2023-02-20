@@ -9,8 +9,8 @@
 #include "ast.hh"
 #include "llvmcodegen.hh"
 
-extern FILE *yyin , *yyout , *prin , *prout;
-extern int yylex() , prlex();
+extern FILE *yyin , *yyout , *prin , *prout , *pprin , *pprout;
+extern int yylex() , prlex() , pprlex();
 extern char *yytext;
 
 NodeStmts *final_values;
@@ -64,8 +64,13 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-	prin = source; 
-	prout = freopen("output.be", "w", stdout);
+	pprin = source;
+	pprout = freopen("output1.be" , "w" , stdout);
+	pprlex();
+	fclose(pprin); fclose(pprout);
+
+	prin = fopen("output1.be","r"); 
+	prout = freopen("output.be" , "w" , stdout);
 	prlex();
 	fclose(prin); fclose(prout);
 
