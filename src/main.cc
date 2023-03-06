@@ -65,12 +65,12 @@ int main(int argc, char *argv[])
     }
 
 	pprin = source;
-	pprout = freopen("output1.be" , "w" , stdout);
+	pprout = fopen("output1.be" , "w" );
 	pprlex();
 	fclose(pprin); fclose(pprout);
 
 	prin = fopen("output1.be","r"); 
-	prout = freopen("output.be" , "w" , stdout);
+	prout = fopen("output.be" , "w" );
 	prlex();
 	fclose(prin); fclose(prout);
 

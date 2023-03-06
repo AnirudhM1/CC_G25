@@ -144,4 +144,16 @@ Value *NodeIdent::llvm_codegen(LLVMCompiler *compiler) {
     return compiler->builder.CreateLoad(compiler->builder.getInt32Ty(), alloc, identifier);
 }
 
+Value *NodeTernary::llvm_codegen(LLVMCompiler *compiler) {
+    return nullptr;
+}
+
+Value *NodeAssign::llvm_codegen(LLVMCompiler *compiler) {
+    Value *expr = expression->llvm_codegen(compiler);
+
+    AllocaInst *alloc = compiler->locals[identifier];
+
+    return compiler->builder.CreateStore(expr, alloc);
+}
+
 #undef MAIN_FUNC

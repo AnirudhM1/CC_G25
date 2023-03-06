@@ -78,3 +78,24 @@ NodeIdent::NodeIdent(std::string ident) {
 std::string NodeIdent::to_string() {
     return identifier;
 }
+
+NodeTernary::NodeTernary(Node *cond, Node *true_exp, Node *false_exp) {
+    type = TERNARY_OP;
+    condition = cond;
+    true_expr = true_exp;
+    false_expr = false_exp;
+}
+
+std::string NodeTernary::to_string() {
+    return "(?: " + condition->to_string() + " " + true_expr->to_string() + " " + false_expr->to_string() + ")";
+}
+
+NodeAssign::NodeAssign(std::string id, Node *expr) {
+    type = ASSN;
+    identifier = id;
+    expression = expr;
+}
+
+std::string NodeAssign::to_string() {
+    return "(assign " + identifier + " " + expression->to_string() + ")";
+}

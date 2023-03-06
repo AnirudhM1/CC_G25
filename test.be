@@ -1,6 +1,4 @@
-#def DEBUG 10
-let x = 5;
-#undef DEBUG
-#ifdef DEBUG
+let x = 10;
+x = 20;
+let y = 10 ? 20 : 30;
 dbg x;
-#endif

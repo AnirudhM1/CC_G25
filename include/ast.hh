@@ -12,7 +12,7 @@ Base node class. Defined as `abstract`.
 */
 struct Node {
     enum NodeType {
-        BIN_OP, INT_LIT, STMTS, ASSN, DBG, IDENT
+        BIN_OP, TERNARY_OP, INT_LIT, STMTS, ASSN, DBG, IDENT
     } type;
 
     virtual std::string to_string() = 0;
@@ -87,6 +87,29 @@ struct NodeIdent : public Node {
     std::string identifier;
 
     NodeIdent(std::string ident);
+    std::string to_string();
+    llvm::Value *llvm_codegen(LLVMCompiler *compiler);
+};
+
+/**
+    Node for Ternary operations
+*/
+struct NodeTernary : public Node {
+    Node *condition, *true_expr, *false_expr;
+
+    NodeTernary(Node *cond, Node *true_expr, Node *false_expr);
+    std::string to_string();
+    llvm::Value *llvm_codegen(LLVMCompiler *compiler);
+};
+
+/**
+    Node for Assignment
+*/
+struct NodeAssign : public Node {
+    std::string identifier;
+    Node *expression;
+
+    NodeAssign(std::string id, Node *expr);
     std::string to_string();
     llvm::Value *llvm_codegen(LLVMCompiler *compiler);
 };
