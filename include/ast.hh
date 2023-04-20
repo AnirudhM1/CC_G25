@@ -64,7 +64,11 @@ struct NodeDecl : public Node {
     std::string identifier;
     Node *expression;
 
-    NodeDecl(std::string id, Node *expr);
+    enum DataType {
+        INT, SHORT, LONG
+    } datatype;
+
+    NodeDecl(std::string id, Node *expr, DataType dtype);
     std::string to_string();
     llvm::Value *llvm_codegen(LLVMCompiler *compiler);
 };

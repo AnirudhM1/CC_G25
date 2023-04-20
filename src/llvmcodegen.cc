@@ -130,7 +130,23 @@ Value *NodeDecl::llvm_codegen(LLVMCompiler *compiler) {
         MAIN_FUNC->getEntryBlock().begin()
     );
 
-    AllocaInst *alloc = temp_builder.CreateAlloca(compiler->builder.getInt32Ty(), 0, identifier);
+    Type *t;
+
+    switch(datatype) {
+        case INT:
+        t = compiler->builder.getInt32Ty();
+        break;
+        case SHORT:
+        t = compiler->builder.getInt16Ty();
+        break;
+        case LONG:
+        t = compiler->builder.getInt64Ty();
+        break;
+    }
+
+    t = compiler->builder.getInt32Ty();
+
+    AllocaInst *alloc = temp_builder.CreateAlloca(t, 0, identifier);
 
     compiler->locals[identifier] = alloc;
 

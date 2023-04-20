@@ -17,6 +17,10 @@ extern int yyerror(std::string msg);
 "("       { return TLPAREN; }
 ")"       { return TRPAREN; }
 "="       { return TEQUAL; }
+":"       { return TCOL; }
+"int"     { return TINT_DTYPE; }
+"short"   { return TSHORT_DTYPE; }
+"long"    { return TLONG_DTYPE; }
 "dbg"     { return TDBG; }
 "let"     { return TLET; }
 [0-9]+    { yylval.lexeme = std::string(yytext); return TINT_LIT; }
