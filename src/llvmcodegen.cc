@@ -261,20 +261,74 @@ Value *NodeReturn::llvm_codegen(LLVMCompiler *compiler) {
 }
 
 Value *NodeFunCall::llvm_codegen(LLVMCompiler *compiler) {
-    // Function *func = compiler->module.getFunction(identifier);
+    Function *func = compiler->module.getFunction(name);
 
-    // std::vector<Value *> args;
-    // for(auto node : list) {
-    //     args.push_back(node->llvm_codegen(compiler));
-    // }
+    std::vector<Value *> args;
+    for(auto node : parameters) {
+        args.push_back(node->llvm_codegen(compiler));
+    }
 
-    // return compiler->builder.CreateCall(func, args, "calltmp");
+    return compiler->builder.CreateCall(func, args, "calltmp");
 
-    return nullptr;
+    // return nullptr;
 }
 
 Value *NodeFunDef::llvm_codegen(LLVMCompiler *compiler) {
-    return nullptr;
+
+    Type *function_return_type;
+    switch(return_type) {
+        case NodeDecl::INT:
+        function_return_type = compiler->builder.getInt32Ty();
+        break;
+        case NodeDecl::SHORT:
+        function_return_type = compiler->builder.getInt16Ty();
+        break;
+        case NodeDecl::LONG:
+        function_return_type = compiler->builder.getInt64Ty();
+        break;
+    }
+
+    std::vector<Type*> args;
+    for(auto param : parameter_types) {
+        switch(param) {
+            case NodeDecl::INT:
+            args.push_back(compiler->builder.getInt32Ty());
+            break;
+            case NodeDecl::SHORT:
+            args.push_back(compiler->builder.getInt16Ty());
+            break;
+            case NodeDecl::LONG:
+            args.push_back(compiler->builder.getInt64Ty());
+            break;
+        }
+    }
+
+
+    FunctionType *func_type = FunctionType::get(
+        function_return_type,
+        args,
+        false
+    );
+
+    Function *func = Function::Create(
+        func_type,
+        GlobalValue::ExternalLinkage,
+        name,
+        compiler->module
+    );
+
+    BasicBlock *bb = BasicBlock::Create(
+        *compiler->context,
+        "entry",
+        func
+    );
+
+    compiler->builder.SetInsertPoint(bb);
+
+    block->llvm_codegen(compiler);
+
+    compiler->builder.CreateRet(compiler->builder.getInt64(0));
+
 }
 
 // codegen for non AST nodes.
