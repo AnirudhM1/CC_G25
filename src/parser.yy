@@ -14,7 +14,7 @@
 
 #include <cstdlib>
 
-extern int yylex();
+extern long yylex();
 extern int yyparse();
 
 extern NodeStmts* final_values;
@@ -96,8 +96,9 @@ Stmt : TLET TIDENT TCOL TINT_DTYPE TEQUAL Expr TSCOL
      }
      ;
 
-Expr : TINT_LIT               
-     { $$ = new NodeInt(stoi($1)); }
+Expr : TINT_LIT          
+     { 
+        $$ = new NodeInt(stol($1)); }
      | TIDENT
      { 
         if(symbol_table.contains($1))

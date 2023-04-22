@@ -24,9 +24,10 @@ std::string NodeBinOp::to_string() {
     return out;
 }
 
-NodeInt::NodeInt(int val) {
+NodeInt::NodeInt(long val) {
     type = INT_LIT;
     value = val;
+    printf("Created node with value %ld\n", value);
 }
 
 std::string NodeInt::to_string() {

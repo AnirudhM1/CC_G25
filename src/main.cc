@@ -51,6 +51,7 @@ int parse_arguments(int argc, char *argv[]) {
 
 int main(int argc, char *argv[]) {
 	int arg_option = parse_arguments(argc, argv);
+
 	if (arg_option == ARG_FAIL) {
 		exit(1);
 	}
@@ -77,6 +78,7 @@ int main(int argc, char *argv[]) {
 			std::cout << token_to_string(token, yytext) << "\n";
 		}
 		fclose(yyin);
+
 		return 0;
 	}
 
@@ -97,8 +99,9 @@ int main(int argc, char *argv[]) {
         if (arg_option == ARG_OPTION_S) {
 			compiler.dump();
         } else {
-            compiler.write(std::string(argv[3]));
+            compiler.write(std::string(argv[3]));		
 		}
+			
 	} else {
 	 	std::cerr << "empty program";
 	}

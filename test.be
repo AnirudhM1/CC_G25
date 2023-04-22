@@ -1,9 +1,3 @@
-let a : int = 1-1;
+let a : long = 11111111111;
 
-if a {
-    let b : int = 1;
-}
-else {
-    let c : int = b;
-    dbg c;
-}
+dbg a;
