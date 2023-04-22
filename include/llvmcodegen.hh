@@ -20,8 +20,8 @@ struct LLVMCompiler {
     LLVMContext *context;
     IRBuilder<> builder;
     Module module;
-    std::unordered_map<std::string, AllocaInst*> locals;
-    
+    std::unordered_map< std::string, AllocaInst*> locals[101];
+    int level=0;
     LLVMCompiler(LLVMContext *context, std::string file_name) : 
         context(context), builder(*context), module(file_name, *context) {}
     

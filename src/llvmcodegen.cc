@@ -25,7 +25,7 @@ void LLVMCompiler::compile(Node *root) {
     // void printi();
     FunctionType *printi_func_type = FunctionType::get(
         builder.getVoidTy(),
-        {builder.getInt64Ty()},
+        {builder.getInt32Ty()},
         false
     );
     Function::Create(
@@ -41,7 +41,7 @@ void LLVMCompiler::compile(Node *root) {
     /* Main Function */
     // int main();
     FunctionType *main_func_type = FunctionType::get(
-        builder.getInt64Ty(), {}, false /* is vararg */
+        builder.getInt32Ty(), {}, false /* is vararg */
     );
     Function *main_func = Function::Create(
         main_func_type,
@@ -63,7 +63,7 @@ void LLVMCompiler::compile(Node *root) {
     root->llvm_codegen(this);
 
     // return 0;
-    builder.CreateRet(builder.getInt64(0));
+    builder.CreateRet(builder.getInt32(0));
 }
 
 void LLVMCompiler::dump() {
@@ -102,7 +102,7 @@ Value *NodeDebug::llvm_codegen(LLVMCompiler *compiler) {
 }
 
 Value *NodeInt::llvm_codegen(LLVMCompiler *compiler) {
-    return compiler->builder.getInt64(value);
+    return compiler->builder.getInt32(value);
 }
 
 Value *NodeBinOp::llvm_codegen(LLVMCompiler *compiler) {
@@ -144,31 +144,35 @@ Value *NodeDecl::llvm_codegen(LLVMCompiler *compiler) {
         break;
     }
 
-    t = compiler->builder.getInt64Ty();
+    t = compiler->builder.getInt32Ty();
 
     AllocaInst *alloc = temp_builder.CreateAlloca(t, 0, identifier);
-
-    compiler->locals[identifier] = alloc;
+    // compiler->locals[identifier].push_back(alloc);
+    // compiler->locals[identifier].push_back(alloc);
+    compiler->locals[compiler->level][identifier] = alloc;
 
     return compiler->builder.CreateStore(expr, alloc);
 }
 
 Value *NodeIdent::llvm_codegen(LLVMCompiler *compiler) {
-    AllocaInst *alloc = compiler->locals[identifier];
+    AllocaInst *alloc = compiler->locals[compiler->level][identifier];
 
     // if your LLVM_MAJOR_VERSION >= 14
-    return compiler->builder.CreateLoad(compiler->builder.getInt64Ty(), alloc, identifier);
+    return compiler->builder.CreateLoad(compiler->builder.getInt32Ty(), alloc, identifier);
 }
 
 
 Value *NodeIfElse::llvm_codegen(LLVMCompiler *compiler) {
 
+    
+
     Value *cond = condition->llvm_codegen(compiler);
     if (!cond) return nullptr;
 
+    compiler->level++;
 
     cond = compiler->builder.CreateICmpSLT(
-        compiler->builder.getInt64(0),
+        compiler->builder.getInt32(0),
         cond,
         "ifcond"
     );
@@ -226,7 +230,7 @@ Value *NodeIfElse::llvm_codegen(LLVMCompiler *compiler) {
     compiler->builder.SetInsertPoint(merge_bb);
 
     PHINode *phi_node = compiler->builder.CreatePHI(
-        compiler->builder.getInt64Ty(),
+        compiler->builder.getInt32Ty(),
         2,
         "iftmp"
     );
@@ -244,6 +248,7 @@ Value *NodeIfElse::llvm_codegen(LLVMCompiler *compiler) {
     phi_node->addIncoming(then_val, then_bb);
     phi_node->addIncoming(else_val, else_bb);
 
+    compiler->level--;
 
     return phi_node;
 

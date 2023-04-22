@@ -19,7 +19,7 @@ extern int yyparse();
 
 extern NodeStmts* final_values;
 
-SymbolTable symbol_table;
+SymbolTableContainer symbol_table;
 
 int yyerror(std::string msg);
 
@@ -58,7 +58,7 @@ Stmt : TLET TIDENT TCOL TINT_DTYPE TEQUAL Expr TSCOL
             // tried to redeclare variable, so error
             yyerror("tried to redeclare variable.\n");
         } else {
-            symbol_table.insert($2);
+            symbol_table.insert($2, "INT");
 
             $$ = new NodeDecl($2, $6, NodeDecl::INT);
         }
@@ -69,7 +69,7 @@ Stmt : TLET TIDENT TCOL TINT_DTYPE TEQUAL Expr TSCOL
             // tried to redeclare variable, so error
             yyerror("tried to redeclare variable.\n");
         } else {
-            symbol_table.insert($2);
+            symbol_table.insert($2, "SHORT");
 
             $$ = new NodeDecl($2, $6, NodeDecl::SHORT);
         }
@@ -80,20 +80,56 @@ Stmt : TLET TIDENT TCOL TINT_DTYPE TEQUAL Expr TSCOL
             // tried to redeclare variable, so error
             yyerror("tried to redeclare variable.\n");
         } else {
-            symbol_table.insert($2);
+            symbol_table.insert($2, "LONG");
 
             $$ = new NodeDecl($2, $6, NodeDecl::LONG);
         }
      }
      | TDBG Expr TSCOL
-     { 
+     {  
         $$ = new NodeDebug($2);
      }
-     | TIF Expr TLBRACE StmtList TRBRACE TELSE TLBRACE StmtList TRBRACE
+     | TIF Expr TLBRACE 
+     {
+        // SymbolTable *new_table = symbol_table.add_scope();
+        // symbol_table = *new_table;
+
+        // printf("======================================\n");
+        // for(auto i : new_table->parent->table) {
+        //     printf("%s %s\n", i.first.c_str(), i.second.c_str());
+        // }
+        // printf("======================================\n");
+
+        // symbol_table.parent = new_table->parent;
+        // symbol_table.table = new_table->table;
+
+        // printf("======================================\n");
+        // printf("%d\n", symbol_table.parent->table.size());
+        // for(auto i : symbol_table.parent->table) {
+        //     printf("%s %s\n", i.first.c_str(), i.second.c_str());
+        // }
+        // printf("======================================\n");
+
+        symbol_table.add_scope();
+
+     }
+        StmtList TRBRACE TELSE
      {
         // printf("Parser:\n%s\n%s\n%s\n", $2->to_string().c_str(), $4->to_string().c_str(), $8->to_string().c_str());
-        $$ = new NodeIfElse($2, $4, $8);
+        // $$ = new NodeIfElse($2, $5, $9);
+        // symbol_table = symbol_table.remove_scope();
+        symbol_table.remove_scope();
      }
+        TLBRACE 
+     {
+        symbol_table.add_scope();
+     }
+       StmtList TRBRACE
+     {
+        $$ = new NodeIfElse($2, $5, $11);
+        symbol_table.remove_scope();
+     }
+
      ;
 
 Expr : TINT_LIT          
@@ -101,7 +137,7 @@ Expr : TINT_LIT
         $$ = new NodeInt(stol($1)); }
      | TIDENT
      { 
-        if(symbol_table.contains($1))
+        if(symbol_table.contains_up($1))
             $$ = new NodeIdent($1); 
         else
             yyerror("using undeclared variable.\n");
