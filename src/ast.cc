@@ -79,3 +79,13 @@ NodeIdent::NodeIdent(std::string ident) {
 std::string NodeIdent::to_string() {
     return identifier;
 }
+
+NodeIfElse::NodeIfElse(Node *cond, Node *iftrue, Node *iffalse) {
+    type = IF_ELSE;
+    condition = cond;
+    if_block = iftrue;
+    else_block = iffalse;
+}
+std::string NodeIfElse::to_string() {
+    return "(if-else " + condition->to_string() + " " + if_block->to_string() + " " + else_block->to_string() + ")";
+}

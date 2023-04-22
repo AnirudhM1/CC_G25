@@ -28,8 +28,9 @@ int yyerror(std::string msg);
 %token TPLUS TDASH TSTAR TSLASH
 %token <lexeme> TINT_LIT TIDENT
 %token TLET TDBG
-%token TSCOL TLPAREN TRPAREN TEQUAL TCOL
+%token TSCOL TLPAREN TRPAREN TEQUAL TCOL TLBRACE TRBRACE
 %token TINT_DTYPE TSHORT_DTYPE TLONG_DTYPE
+%token TIF TELSE
 
 %type <node> Expr Stmt
 %type <stmts> Program StmtList
@@ -41,17 +42,17 @@ int yyerror(std::string msg);
 
 Program :                
         { final_values = nullptr; }
-        | StmtList TSCOL 
+        | StmtList 
         { final_values = $1; }
 	    ;
 
 StmtList : Stmt                
          { $$ = new NodeStmts(); $$->push_back($1); }
-	     | StmtList TSCOL Stmt 
-         { $$->push_back($3); }
+	     | StmtList Stmt 
+         { $$->push_back($2); }
 	     ;
 
-Stmt : TLET TIDENT TCOL TINT_DTYPE TEQUAL Expr
+Stmt : TLET TIDENT TCOL TINT_DTYPE TEQUAL Expr TSCOL
      {
         if(symbol_table.contains($2)) {
             // tried to redeclare variable, so error
@@ -62,7 +63,7 @@ Stmt : TLET TIDENT TCOL TINT_DTYPE TEQUAL Expr
             $$ = new NodeDecl($2, $6, NodeDecl::INT);
         }
      }
-     | TLET TIDENT TCOL TSHORT_DTYPE TEQUAL Expr
+     | TLET TIDENT TCOL TSHORT_DTYPE TEQUAL Expr TSCOL
      {
         if(symbol_table.contains($2)) {
             // tried to redeclare variable, so error
@@ -73,7 +74,7 @@ Stmt : TLET TIDENT TCOL TINT_DTYPE TEQUAL Expr
             $$ = new NodeDecl($2, $6, NodeDecl::SHORT);
         }
      }
-     | TLET TIDENT TCOL TLONG_DTYPE TEQUAL Expr
+     | TLET TIDENT TCOL TLONG_DTYPE TEQUAL Expr TSCOL
      {
         if(symbol_table.contains($2)) {
             // tried to redeclare variable, so error
@@ -84,9 +85,14 @@ Stmt : TLET TIDENT TCOL TINT_DTYPE TEQUAL Expr
             $$ = new NodeDecl($2, $6, NodeDecl::LONG);
         }
      }
-     | TDBG Expr
+     | TDBG Expr TSCOL
      { 
         $$ = new NodeDebug($2);
+     }
+     | TIF Expr TLBRACE StmtList TRBRACE TELSE TLBRACE StmtList TRBRACE
+     {
+        // printf("Parser:\n%s\n%s\n%s\n", $2->to_string().c_str(), $4->to_string().c_str(), $8->to_string().c_str());
+        $$ = new NodeIfElse($2, $4, $8);
      }
      ;
 

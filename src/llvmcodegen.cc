@@ -160,4 +160,94 @@ Value *NodeIdent::llvm_codegen(LLVMCompiler *compiler) {
     return compiler->builder.CreateLoad(compiler->builder.getInt32Ty(), alloc, identifier);
 }
 
-#undef MAIN_FUNC
+
+Value *NodeIfElse::llvm_codegen(LLVMCompiler *compiler) {
+
+    Value *cond = condition->llvm_codegen(compiler);
+    if (!cond) return nullptr;
+
+
+    cond = compiler->builder.CreateICmpSLT(
+        compiler->builder.getInt32(0),
+        cond,
+        "ifcond"
+    );
+
+
+
+    Function *current_func = compiler->builder.GetInsertBlock()->getParent();
+
+    BasicBlock *then_bb = BasicBlock::Create(
+        *compiler->context,
+        "then",
+        current_func
+    );
+    BasicBlock *else_bb = BasicBlock::Create(
+        *compiler->context,
+        "else"
+    );
+    BasicBlock *merge_bb = BasicBlock::Create(
+        *compiler->context,
+        "ifcont"
+    );
+
+
+    compiler->builder.CreateCondBr(cond, then_bb, else_bb);
+    compiler->builder.SetInsertPoint(then_bb);
+
+
+
+    Value *then_val = if_block->llvm_codegen(compiler);
+    if (!then_val) return nullptr;
+
+    StoreInst *store1 = dyn_cast<StoreInst>(then_val);
+    if (store1)
+        then_val = store1->getValueOperand();
+
+
+    compiler->builder.CreateBr(merge_bb);
+    then_bb = compiler->builder.GetInsertBlock();
+
+    current_func->getBasicBlockList().push_back(else_bb);
+    compiler->builder.SetInsertPoint(else_bb);
+
+    Value *else_val = else_block->llvm_codegen(compiler);
+    if (!else_val) return nullptr;
+
+    StoreInst *store2 = dyn_cast<StoreInst>(else_val);
+    if (store2)
+        else_val = store2->getValueOperand();
+ 
+    
+    compiler->builder.CreateBr(merge_bb);
+    else_bb = compiler->builder.GetInsertBlock();
+
+    current_func->getBasicBlockList().push_back(merge_bb);
+    compiler->builder.SetInsertPoint(merge_bb);
+
+    PHINode *phi_node = compiler->builder.CreatePHI(
+        compiler->builder.getInt32Ty(),
+        2,
+        "iftmp"
+    );
+
+    // printf("Type: %u\n", phi_node->getType()->getTypeID());
+    // printf("Type: %u\n", then_bb->getType()->getTypeID());
+
+
+    // printf("Type: %u\n", phi_node->getNumOperands() - 1);
+
+    // cast 'then_val' variable to type of DoubleTyID
+    // then_val = compiler->builder.CreateFPCast(then_val, compiler->builder.getDoubleTy(), "iftmp");
+    // else_val = compiler->builder.CreateFPCast(else_val, compiler->builder.getDoubleTy(), "iftmp");
+
+    phi_node->addIncoming(then_val, then_bb);
+    phi_node->addIncoming(else_val, else_bb);
+
+
+    return phi_node;
+
+}
+#undef MAIN_FUNC   // StoreInst *store2 = dyn_cast<StoreInst>(else_val);
+    // if (store2)
+    //     else_val = store2->getValueOperand();
