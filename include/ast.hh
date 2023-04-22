@@ -12,7 +12,7 @@ Base node class. Defined as `abstract`.
 */
 struct Node {
     enum NodeType {
-        BIN_OP, INT_LIT, STMTS, ASSN, DBG, IDENT, IF_ELSE
+        BIN_OP, INT_LIT, STMTS, ASSN, DBG, IDENT, IF_ELSE, NON_AST, FN, RT
     } type;
 
     virtual std::string to_string() = 0;
@@ -104,6 +104,73 @@ struct NodeIfElse : public Node {
     Node *else_block;
 
     NodeIfElse(Node *cond, Node *ifb, Node *elseb);
+    std::string to_string();
+    llvm::Value *llvm_codegen(LLVMCompiler *compiler);
+};
+
+/**
+    Node for return statement
+*/
+struct NodeReturn : public Node {
+    Node *expression;
+
+    NodeReturn(Node *expr);
+    std::string to_string();
+    llvm::Value *llvm_codegen(LLVMCompiler *compiler);
+};
+
+/**
+    Node for function declarations
+*/
+struct NodeFunDef : public Node {
+    std::string name;
+    NodeDecl::DataType return_type;
+    std::vector<NodeDecl::DataType> parameter_types;
+    Node *block;
+    Node *return_expression;
+
+    NodeFunDef(std::string id, std::vector<NodeDecl::DataType> parameter_types, Node *block, NodeDecl::DataType ret);
+    NodeFunDef(std::string id, std::vector<NodeDecl::DataType> parameter_types, Node *block, NodeDecl::DataType ret, Node *ret_expression);
+    std::string to_string();
+    llvm::Value *llvm_codegen(LLVMCompiler *compiler);
+};
+
+/**
+    Node for function calls
+*/
+struct NodeFunCall : public Node {
+    std::string name;
+    std::vector<Node*> parameters;
+
+    NodeFunCall(std::string id, std::vector<Node*> parameters);
+    std::string to_string();
+    llvm::Value *llvm_codegen(LLVMCompiler *compiler);
+};
+
+/**
+    Node for declaring params in a function. This is a special node that is not used in the AST.
+*/
+struct NodeParamDecl : public Node {
+    std::vector<NodeDecl::DataType> list;
+    std::vector<std::string> nodes;
+
+    NodeParamDecl(std::string identifier, NodeDecl::DataType dtype);
+    NodeParamDecl(Node* node, std::string identifier, NodeDecl::DataType dtype);
+    std::vector<NodeDecl::DataType> get_type_list();
+    std::vector<std::string> get_node_list();
+    std::string to_string();
+    llvm::Value *llvm_codegen(LLVMCompiler *compiler);
+};
+
+/**
+    Node for pasing params to a function. This is a special node that is not used in the AST.
+*/
+struct NodeParamPass : public Node {
+    std::vector<Node*> list;
+
+    NodeParamPass(Node *expr);
+    NodeParamPass(Node *node, Node *expr);
+    std::vector<Node*> get_list();
     std::string to_string();
     llvm::Value *llvm_codegen(LLVMCompiler *compiler);
 };

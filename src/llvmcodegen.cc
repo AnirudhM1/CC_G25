@@ -253,6 +253,35 @@ Value *NodeIfElse::llvm_codegen(LLVMCompiler *compiler) {
     return phi_node;
 
 }
-#undef MAIN_FUNC   // StoreInst *store2 = dyn_cast<StoreInst>(else_val);
-    // if (store2)
-    //     else_val = store2->getValueOperand();
+
+Value *NodeReturn::llvm_codegen(LLVMCompiler *compiler) {
+    Value *expr = expression->llvm_codegen(compiler);
+
+    return compiler->builder.CreateRet(expr);
+}
+
+Value *NodeFunCall::llvm_codegen(LLVMCompiler *compiler) {
+    // Function *func = compiler->module.getFunction(identifier);
+
+    // std::vector<Value *> args;
+    // for(auto node : list) {
+    //     args.push_back(node->llvm_codegen(compiler));
+    // }
+
+    // return compiler->builder.CreateCall(func, args, "calltmp");
+
+    return nullptr;
+}
+
+Value *NodeFunDef::llvm_codegen(LLVMCompiler *compiler) {
+    return nullptr;
+}
+
+// codegen for non AST nodes.
+Value *NodeParamDecl::llvm_codegen(LLVMCompiler *compiler) {
+    return nullptr;
+}
+Value *NodeParamPass::llvm_codegen(LLVMCompiler *compiler) {
+    return nullptr;
+}
+#undef MAIN_FUNC
