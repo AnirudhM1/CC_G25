@@ -141,6 +141,7 @@ Stmt : TLET TIDENT TCOL TINT_DTYPE { maxx=1; } TEQUAL Expr TSCOL
      | TFUN TIDENT TLPAREN TRPAREN TCOL TINT_DTYPE TLBRACE 
      {
          symbol_table.insert($2, "FUN");
+         symbol_table.insert_fun($2, std::vector<NodeDecl::DataType>());
          symbol_table.add_scope();
      }
      StmtList TRBRACE
@@ -152,6 +153,7 @@ Stmt : TLET TIDENT TCOL TINT_DTYPE { maxx=1; } TEQUAL Expr TSCOL
      | TFUN TIDENT TLPAREN TRPAREN TCOL TSHORT_DTYPE TLBRACE 
      {
          symbol_table.insert($2, "FUN");
+         symbol_table.insert_fun($2, std::vector<NodeDecl::DataType>());
          symbol_table.add_scope();
      }
      StmtList TRBRACE
@@ -163,6 +165,7 @@ Stmt : TLET TIDENT TCOL TINT_DTYPE { maxx=1; } TEQUAL Expr TSCOL
      | TFUN TIDENT TLPAREN TRPAREN TCOL TLONG_DTYPE TLBRACE 
      {
          symbol_table.insert($2, "FUN");
+         symbol_table.insert_fun($2, std::vector<NodeDecl::DataType>());
          symbol_table.add_scope();
      }
      StmtList TRBRACE
@@ -177,6 +180,7 @@ Stmt : TLET TIDENT TCOL TINT_DTYPE { maxx=1; } TEQUAL Expr TSCOL
          symbol_table.add_scope();
          std::vector<std::string> identifiers = ((NodeParamDecl*)$4)->get_node_list();
          std::vector<NodeDecl::DataType> types = ((NodeParamDecl*)$4)->get_type_list();
+         symbol_table.insert_fun($2, types);
          for(int i = 0; i < (int)identifiers.size(); i++) {
              std::string dtype;
                switch(types[i]) {
@@ -207,6 +211,7 @@ Stmt : TLET TIDENT TCOL TINT_DTYPE { maxx=1; } TEQUAL Expr TSCOL
          symbol_table.add_scope();
          std::vector<std::string> identifiers = ((NodeParamDecl*)$4)->get_node_list();
          std::vector<NodeDecl::DataType> types = ((NodeParamDecl*)$4)->get_type_list();
+         symbol_table.insert_fun($2, types);
          for(int i = 0; i < (int)identifiers.size(); i++) {
              std::string dtype;
                switch(types[i]) {
@@ -237,6 +242,7 @@ Stmt : TLET TIDENT TCOL TINT_DTYPE { maxx=1; } TEQUAL Expr TSCOL
          symbol_table.add_scope();
          std::vector<std::string> identifiers = ((NodeParamDecl*)$4)->get_node_list();
          std::vector<NodeDecl::DataType> types = ((NodeParamDecl*)$4)->get_type_list();
+         symbol_table.insert_fun($2, types);
          for(int i = 0; i < (int)identifiers.size(); i++) {
              std::string dtype;
                switch(types[i]) {
@@ -306,15 +312,28 @@ Expr : TINT_LIT
      | TLPAREN Expr TRPAREN { $$ = $2; }
      | TIDENT TLPAREN TRPAREN
      {
-        if(symbol_table.contains_up($1))
-            $$ = new NodeFunCall($1, std::vector<Node*>());
+        if(symbol_table.contains_up($1)) {
+            if(symbol_table.check_fun($1, std::vector<NodeDecl::DataType>())) {
+                $$ = new NodeFunCall($1, std::vector<Node*>());
+            }
+            else {
+                yyerror("function call does not match the function definition.\n");
+            }
+        }
         else
             yyerror("using undeclared function.\n");
      }
      | TIDENT TLPAREN ParamPass TRPAREN
      {
-        if(symbol_table.contains_up($1))
-            $$ = new NodeFunCall($1, ((NodeParamPass*)$3)->get_list());
+        if(symbol_table.contains_up($1)) {
+            if(symbol_table.check_fun($1, (int)((NodeParamPass*)$3)->list.size())) {
+                $$ = new NodeFunCall($1, ((NodeParamPass*)$3)->get_list());
+            }
+            else {
+                yyerror("function call does not match the function definition.\n");
+            }
+            
+        }
         else
             yyerror("using undeclared function.\n");
      }

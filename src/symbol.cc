@@ -58,3 +58,45 @@ bool SymbolTableContainer::contains_up(std::string key) {
 std::string SymbolTableContainer::get_type(std::string key) {
     return current_scope->table[key];
 }
+
+void SymbolTableContainer::insert_fun(std::string key, std::vector<NodeDecl::DataType> args) {
+    fun_table[key] = args;
+}
+
+bool SymbolTableContainer::check_fun(std::string key, std::vector<NodeDecl::DataType> args) {
+    if (fun_table.find(key) == fun_table.end()) {
+        return false;
+    } else {
+        std::vector<NodeDecl::DataType> arg_types = fun_table[key];
+        if (arg_types.size() != args.size()) {
+            return false;
+        } else {
+            for (int i = 0; i < (int)arg_types.size(); i++) {
+                switch(arg_types[i]) {
+                    case NodeDecl::DataType::SHORT:
+                        if (args[i] != NodeDecl::DataType::SHORT) {
+                            return false;
+                        }
+                        break;
+                    case NodeDecl::DataType::INT:
+                        if (args[i] == NodeDecl::DataType::LONG) {
+                            return false;
+                        }
+                        break;
+                    case NodeDecl::DataType::LONG:
+                        break;
+                }
+            }
+            return true;
+        }
+    }
+}
+
+bool SymbolTableContainer::check_fun(std::string key, int num_args) {
+    if (fun_table.find(key) == fun_table.end()) {
+        return false;
+    } else {
+        std::vector<NodeDecl::DataType> arg_types = fun_table[key];
+        return (int)arg_types.size() == num_args;
+    }
+}

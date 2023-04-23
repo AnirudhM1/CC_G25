@@ -22,6 +22,7 @@ struct SymbolTable {
 
 struct SymbolTableContainer {
     SymbolTable *current_scope;
+    std::unordered_map<std::string, std::vector<NodeDecl::DataType>> fun_table;
 
     SymbolTableContainer();
     void add_scope();
@@ -30,6 +31,9 @@ struct SymbolTableContainer {
     bool contains(std::string key);
     bool contains_up(std::string key);
     std::string get_type(std::string key);
+    void insert_fun(std::string key, std::vector<NodeDecl::DataType> args);
+    bool check_fun(std::string key, std::vector<NodeDecl::DataType> args);
+    bool check_fun(std::string key, int num_args);
 
 };
 
