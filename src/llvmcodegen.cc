@@ -23,6 +23,7 @@ ins `docs/llvm.md`
 void LLVMCompiler::compile(Node *root) {
     /* Adding reference to print_i in the runtime library */
     // void printi();
+    bool has_Main = false;
     FunctionType *printi_func_type = FunctionType::get(
         builder.getVoidTy(),
         {builder.getInt64Ty()},
@@ -64,6 +65,7 @@ void LLVMCompiler::compile(Node *root) {
         std::string func_name = func_node->name;
         if(func_name == "main") {
             // main function
+            has_Main=true;
             builder.SetInsertPoint(main_func_entry_bb);
             func_node->llvm_codegen(this);
         }
@@ -71,6 +73,10 @@ void LLVMCompiler::compile(Node *root) {
             // other functions
             func_node->llvm_codegen(this);
         }
+    }
+    if(!has_Main) {
+        std::cerr << "Error: No main function found" << std::endl;
+        exit(1);
     }
 }
 
@@ -308,11 +314,11 @@ Value *NodeIfElse::llvm_codegen(LLVMCompiler *compiler) {
     // then_val = compiler->builder.CreateFPCast(then_val, compiler->builder.getDoubleTy(), "iftmp");
     // else_val = compiler->builder.CreateFPCast(else_val, compiler->builder.getDoubleTy(), "iftmp");
 
-    printf("TYPE: %u\n", then_val->getType()->getTypeID());
-    printf("TYPE: %u\n", else_val->getType()->getTypeID());
-    printf("TYPE: %u\n", phi_node->getType()->getTypeID());
+    // printf("TYPE: %u\n", then_val->getType()->getTypeID());
+    // printf("TYPE: %u\n", else_val->getType()->getTypeID());
+    // printf("TYPE: %u\n", phi_node->getType()->getTypeID());
 
-    std::cout<<then_returned<<" "<<else_returned<<std::endl;
+    // std::cout<<then_returned<<" "<<else_returned<<std::endl;
 
     if (!then_returned)
         phi_node->addIncoming(then_val, then_bb);

@@ -19,6 +19,7 @@ extern int yyparse();
 
 extern NodeStmts* final_values;
 
+int maxx=3;
 SymbolTableContainer symbol_table;
 
 int yyerror(std::string msg);
@@ -72,7 +73,7 @@ ParamPass : Expr
             { $$ = new NodeParamPass($1, $3); }
             ;
 
-Stmt : TLET TIDENT TCOL TINT_DTYPE TEQUAL Expr TSCOL
+Stmt : TLET TIDENT TCOL TINT_DTYPE { maxx=1; } TEQUAL Expr TSCOL
      {
         if(symbol_table.contains($2)) {
             // tried to redeclare variable, so error
@@ -80,10 +81,11 @@ Stmt : TLET TIDENT TCOL TINT_DTYPE TEQUAL Expr TSCOL
         } else {
             symbol_table.insert($2, "INT");
 
-            $$ = new NodeDecl($2, $6, NodeDecl::INT);
+            $$ = new NodeDecl($2, $7, NodeDecl::INT);
         }
+        maxx = 3;
      }
-     | TLET TIDENT TCOL TSHORT_DTYPE TEQUAL Expr TSCOL
+     | TLET TIDENT TCOL TSHORT_DTYPE  { maxx=0; }TEQUAL Expr TSCOL
      {
         if(symbol_table.contains($2)) {
             // tried to redeclare variable, so error
@@ -91,10 +93,11 @@ Stmt : TLET TIDENT TCOL TINT_DTYPE TEQUAL Expr TSCOL
         } else {
             symbol_table.insert($2, "SHORT");
 
-            $$ = new NodeDecl($2, $6, NodeDecl::SHORT);
+            $$ = new NodeDecl($2, $7, NodeDecl::SHORT);
         }
+        maxx = 3;
      }
-     | TLET TIDENT TCOL TLONG_DTYPE TEQUAL Expr TSCOL
+     | TLET TIDENT TCOL TLONG_DTYPE { maxx=2; } TEQUAL Expr TSCOL
      {
         if(symbol_table.contains($2)) {
             // tried to redeclare variable, so error
@@ -102,8 +105,9 @@ Stmt : TLET TIDENT TCOL TINT_DTYPE TEQUAL Expr TSCOL
         } else {
             symbol_table.insert($2, "LONG");
 
-            $$ = new NodeDecl($2, $6, NodeDecl::LONG);
+            $$ = new NodeDecl($2, $7, NodeDecl::LONG);
         }
+        maxx = 3;
      }
      | TDBG Expr TSCOL
      {  
@@ -266,7 +270,20 @@ Expr : TINT_LIT
      | TIDENT
      { 
         if(symbol_table.contains_up($1))
+        {
             $$ = new NodeIdent($1); 
+            int curr = 0;
+            if(symbol_table.get_type($1) == "INT")
+                curr = 1;
+            else if(symbol_table.get_type($1) == "SHORT")
+                curr = 0;
+            else
+                curr = 2;
+            if(curr > maxx)
+                {
+                    yyerror("Type coersion detected. \n");
+                }
+        }           
         else
             yyerror("using undeclared variable.\n");
      }

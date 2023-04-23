@@ -29,6 +29,7 @@ struct SymbolTableContainer {
     void insert(std::string key, std::string type);
     bool contains(std::string key);
     bool contains_up(std::string key);
+    std::string get_type(std::string key);
 
 };
 

@@ -54,3 +54,7 @@ bool SymbolTableContainer::contains(std::string key) {
 bool SymbolTableContainer::contains_up(std::string key) {
     return current_scope->contains_up(key);
 }
+
+std::string SymbolTableContainer::get_type(std::string key) {
+    return current_scope->table[key];
+}
