@@ -1,2 +1,7 @@
-fun f(x : int) : int {ret 0;}
-dbg f(1);
+fun f() : int {
+    dbg 1;
+}
+
+fun main() : int {
+    dbg f();
+}

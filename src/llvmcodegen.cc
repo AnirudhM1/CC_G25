@@ -57,13 +57,21 @@ void LLVMCompiler::compile(Node *root) {
         main_func
     );
 
-    // move the builder to the start of the main function block
-    builder.SetInsertPoint(main_func_entry_bb);
+    NodeStmts *stmts = (NodeStmts*)root;
 
-    root->llvm_codegen(this);
-
-    // return 0;
-    builder.CreateRet(builder.getInt64(0));
+    for(auto stmt : stmts->list) {
+        NodeFunDef *func_node = (NodeFunDef*)stmt;
+        std::string func_name = func_node->name;
+        if(func_name == "main") {
+            // main function
+            builder.SetInsertPoint(main_func_entry_bb);
+            func_node->llvm_codegen(this);
+        }
+        else {
+            // other functions
+            func_node->llvm_codegen(this);
+        }
+    }
 }
 
 void LLVMCompiler::dump() {
@@ -275,46 +283,45 @@ Value *NodeFunCall::llvm_codegen(LLVMCompiler *compiler) {
 
 Value *NodeFunDef::llvm_codegen(LLVMCompiler *compiler) {
 
-    Type *function_return_type;
-    switch(return_type) {
-        case NodeDecl::INT:
-        function_return_type = compiler->builder.getInt32Ty();
-        break;
-        case NodeDecl::SHORT:
-        function_return_type = compiler->builder.getInt16Ty();
-        break;
-        case NodeDecl::LONG:
-        function_return_type = compiler->builder.getInt64Ty();
-        break;
+    if(name == "main") {
+        // function defination for 'main' is defined in the compile function
+        // so we don't need to create it again.
+
+        NodeStmts *stmts = (NodeStmts*)block;
+
+        Node *last = nullptr;
+
+        for(auto node : stmts->list) {
+            node->llvm_codegen(compiler);
+            last = node;
+        }
+
+        if(last == nullptr || last->type != Node::NodeType::RT) {
+            compiler->builder.CreateRet(compiler->builder.getInt64(0));
+        }
+
+        return nullptr;
     }
 
-    std::vector<Type*> args;
-    for(auto param : parameter_types) {
-        switch(param) {
-            case NodeDecl::INT:
-            args.push_back(compiler->builder.getInt32Ty());
-            break;
-            case NodeDecl::SHORT:
-            args.push_back(compiler->builder.getInt16Ty());
-            break;
-            case NodeDecl::LONG:
-            args.push_back(compiler->builder.getInt64Ty());
-            break;
-        }
+    // Otherwise create the function defination
+
+    std::vector<Type *> args;
+    for(auto type : parameter_types) {
+        args.push_back(compiler->builder.getInt64Ty());
     }
 
 
     FunctionType *func_type = FunctionType::get(
-        function_return_type,
+        compiler->builder.getInt64Ty(),
         args,
         false
     );
 
     Function *func = Function::Create(
         func_type,
-        GlobalValue::ExternalLinkage,
+        Function::ExternalLinkage,
         name,
-        compiler->module
+        &compiler->module
     );
 
     BasicBlock *bb = BasicBlock::Create(
@@ -325,9 +332,20 @@ Value *NodeFunDef::llvm_codegen(LLVMCompiler *compiler) {
 
     compiler->builder.SetInsertPoint(bb);
 
-    block->llvm_codegen(compiler);
+    Node *last = nullptr;
 
-    compiler->builder.CreateRet(compiler->builder.getInt64(0));
+    NodeStmts *stmts = (NodeStmts*)block;
+
+    for(auto node : stmts->list) {
+        node->llvm_codegen(compiler);
+        last = node;
+    }
+
+    if(last == nullptr || last->type != Node::NodeType::RT) {
+        compiler->builder.CreateRet(compiler->builder.getInt64(0));
+    }
+
+    return nullptr;
 
 }
 
