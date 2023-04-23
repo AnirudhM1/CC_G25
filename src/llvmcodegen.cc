@@ -212,13 +212,35 @@ Value *NodeIfElse::llvm_codegen(LLVMCompiler *compiler) {
         "ifcont"
     );
 
+    BasicBlock *then_ret_bb = BasicBlock::Create(
+        *compiler->context,
+        "then_ret"
+    );
+
+    BasicBlock *else_ret_bb = BasicBlock::Create(
+        *compiler->context,
+        "else_ret"
+    );
+
 
     compiler->builder.CreateCondBr(cond, then_bb, else_bb);
     compiler->builder.SetInsertPoint(then_bb);
 
 
 
-    Value *then_val = if_block->llvm_codegen(compiler);
+
+    // Value *then_val = if_block->llvm_codegen(compiler);
+    Value *then_val = nullptr;
+    NodeStmts *if_block_stmts = (NodeStmts*)if_block;
+    bool then_returned = false;
+
+    for(auto node : if_block_stmts->list) {
+        then_val = node->llvm_codegen(compiler);
+        if (node->type == Node::NodeType::RT) {
+            then_returned = true;
+            break;
+        }
+    }
 
     // printf("then_val: %u", then_val->getType()->getTypeID());
     // printf("then_val: %s", if_block->to_string().c_str());
@@ -229,27 +251,47 @@ Value *NodeIfElse::llvm_codegen(LLVMCompiler *compiler) {
     if (store1)
         then_val = store1->getValueOperand();
 
+    if (!then_returned)
+        compiler->builder.CreateBr(merge_bb);
 
-    compiler->builder.CreateBr(merge_bb);
     then_bb = compiler->builder.GetInsertBlock();
 
     current_func->getBasicBlockList().push_back(else_bb);
     compiler->builder.SetInsertPoint(else_bb);
 
-    Value *else_val = else_block->llvm_codegen(compiler);
+    // Value *else_val = else_block->llvm_codegen(compiler);
+    Value *else_val = nullptr;
+    NodeStmts *else_block_stmts = (NodeStmts*)else_block;
+    bool else_returned = false;
+
+    for(auto node : else_block_stmts->list) {
+        else_val = node->llvm_codegen(compiler);
+        if (node->type == Node::NodeType::RT) {
+            else_returned = true;
+            break;
+        }
+    }
+
+
+
     if (!else_val) return nullptr;
 
     StoreInst *store2 = dyn_cast<StoreInst>(else_val);
     if (store2)
         else_val = store2->getValueOperand();
  
-    
-    compiler->builder.CreateBr(merge_bb);
+    if(!else_returned)
+        compiler->builder.CreateBr(merge_bb);
+
     else_bb = compiler->builder.GetInsertBlock();
 
     current_func->getBasicBlockList().push_back(merge_bb);
     compiler->builder.SetInsertPoint(merge_bb);
 
+    
+    if(then_returned && else_returned) {
+        return nullptr;
+    }
     PHINode *phi_node = compiler->builder.CreatePHI(
         compiler->builder.getInt64Ty(),
         2,
@@ -270,9 +312,12 @@ Value *NodeIfElse::llvm_codegen(LLVMCompiler *compiler) {
     printf("TYPE: %u\n", else_val->getType()->getTypeID());
     printf("TYPE: %u\n", phi_node->getType()->getTypeID());
 
+    std::cout<<then_returned<<" "<<else_returned<<std::endl;
 
-    phi_node->addIncoming(then_val, then_bb);
-    phi_node->addIncoming(else_val, else_bb);
+    if (!then_returned)
+        phi_node->addIncoming(then_val, then_bb);
+    if (!else_returned)
+        phi_node->addIncoming(else_val, else_bb);
 
     compiler->level--;
 

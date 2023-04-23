@@ -1,13 +1,10 @@
-fun add_if_a_is_one_else_sub(a : long, b : int) : long {
-    if a - 1 {
-        ret a - b;
-    } else {
-        ret a + b;
-    }
-}
-
-
 fun main() : int {
-    dbg add_if_a_is_one_else_sub(1, 40);
-    dbg add_if_a_is_one_else_sub(100, 30);
+let cond : int = 15;
+if cond - 5 * 3 {
+let cond : short = 100;
+dbg cond;
+} else {
+let cond : long = 50000;
+dbg cond;
+}
 }
