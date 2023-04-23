@@ -126,11 +126,12 @@ struct NodeFunDef : public Node {
     std::string name;
     NodeDecl::DataType return_type;
     std::vector<NodeDecl::DataType> parameter_types;
+    std::vector<std::string> parameter_names;
     Node *block;
     Node *return_expression;
 
-    NodeFunDef(std::string id, std::vector<NodeDecl::DataType> parameter_types, Node *block, NodeDecl::DataType ret);
-    NodeFunDef(std::string id, std::vector<NodeDecl::DataType> parameter_types, Node *block, NodeDecl::DataType ret, Node *ret_expression);
+    NodeFunDef(std::string id, std::vector<NodeDecl::DataType> parameter_types, std::vector<std::string> names, Node *block, NodeDecl::DataType ret);
+    NodeFunDef(std::string id, std::vector<NodeDecl::DataType> parameter_types, std::vector<std::string> names, Node *block, NodeDecl::DataType ret, Node *ret_expression);
     std::string to_string();
     llvm::Value *llvm_codegen(LLVMCompiler *compiler);
 };

@@ -99,19 +99,21 @@ std::string NodeReturn::to_string() {
     return "(ret " + expression->to_string() + ")";
 }
 
-NodeFunDef::NodeFunDef(std::string identifier, std::vector<NodeDecl::DataType> types, Node *body, NodeDecl::DataType ret) {
+NodeFunDef::NodeFunDef(std::string identifier, std::vector<NodeDecl::DataType> types, std::vector<std::string> names, Node *body, NodeDecl::DataType ret) {
     type = FN;
     name = identifier;
     return_type = ret;
     parameter_types = types;
+    parameter_names = names;
     block = body;
     return_expression = nullptr;
 }
-NodeFunDef::NodeFunDef(std::string identifier, std::vector<NodeDecl::DataType> types, Node *body, NodeDecl::DataType ret, Node *ret_expr) {
+NodeFunDef::NodeFunDef(std::string identifier, std::vector<NodeDecl::DataType> types, std::vector<std::string> names, Node *body, NodeDecl::DataType ret, Node *ret_expr) {
     type = FN;
     name = identifier;
     return_type = ret;
     parameter_types = types;
+    parameter_names = names;
     block = body;
     return_expression = ret_expr;
 }

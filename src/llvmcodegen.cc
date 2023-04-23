@@ -106,6 +106,8 @@ Value *NodeDebug::llvm_codegen(LLVMCompiler *compiler) {
     Function *printi_func = compiler->module.getFunction("printi");
     compiler->builder.CreateCall(printi_func, {expr});
 
+    // printf("exp: %u\n", expr->getType()->getTypeID());
+
     return expr;
 }
 
@@ -163,7 +165,14 @@ Value *NodeDecl::llvm_codegen(LLVMCompiler *compiler) {
 }
 
 Value *NodeIdent::llvm_codegen(LLVMCompiler *compiler) {
-    AllocaInst *alloc = compiler->locals[compiler->level][identifier];
+    int level = compiler->level;
+    while(level > 0) {
+        if(compiler->locals[level][identifier] != nullptr) {
+            break;
+        }
+        level--;
+    }
+    AllocaInst *alloc = compiler->locals[level][identifier];
 
     // if your LLVM_MAJOR_VERSION >= 14
     return compiler->builder.CreateLoad(compiler->builder.getInt64Ty(), alloc, identifier);
@@ -210,6 +219,10 @@ Value *NodeIfElse::llvm_codegen(LLVMCompiler *compiler) {
 
 
     Value *then_val = if_block->llvm_codegen(compiler);
+
+    // printf("then_val: %u", then_val->getType()->getTypeID());
+    // printf("then_val: %s", if_block->to_string().c_str());
+
     if (!then_val) return nullptr;
 
     StoreInst *store1 = dyn_cast<StoreInst>(then_val);
@@ -253,6 +266,11 @@ Value *NodeIfElse::llvm_codegen(LLVMCompiler *compiler) {
     // then_val = compiler->builder.CreateFPCast(then_val, compiler->builder.getDoubleTy(), "iftmp");
     // else_val = compiler->builder.CreateFPCast(else_val, compiler->builder.getDoubleTy(), "iftmp");
 
+    printf("TYPE: %u\n", then_val->getType()->getTypeID());
+    printf("TYPE: %u\n", else_val->getType()->getTypeID());
+    printf("TYPE: %u\n", phi_node->getType()->getTypeID());
+
+
     phi_node->addIncoming(then_val, then_bb);
     phi_node->addIncoming(else_val, else_bb);
 
@@ -265,7 +283,8 @@ Value *NodeIfElse::llvm_codegen(LLVMCompiler *compiler) {
 Value *NodeReturn::llvm_codegen(LLVMCompiler *compiler) {
     Value *expr = expression->llvm_codegen(compiler);
 
-    return compiler->builder.CreateRet(expr);
+    compiler->builder.CreateRet(expr);
+    return expr;
 }
 
 Value *NodeFunCall::llvm_codegen(LLVMCompiler *compiler) {
@@ -278,7 +297,6 @@ Value *NodeFunCall::llvm_codegen(LLVMCompiler *compiler) {
 
     return compiler->builder.CreateCall(func, args, "calltmp");
 
-    // return nullptr;
 }
 
 Value *NodeFunDef::llvm_codegen(LLVMCompiler *compiler) {
@@ -324,6 +342,7 @@ Value *NodeFunDef::llvm_codegen(LLVMCompiler *compiler) {
         &compiler->module
     );
 
+
     BasicBlock *bb = BasicBlock::Create(
         *compiler->context,
         "entry",
@@ -331,6 +350,32 @@ Value *NodeFunDef::llvm_codegen(LLVMCompiler *compiler) {
     );
 
     compiler->builder.SetInsertPoint(bb);
+
+    IRBuilder<> temp_builder(
+        &func->getEntryBlock(),
+        func->getEntryBlock().begin()
+    );
+
+
+    // set the function parameters in the locals map
+    unsigned int i = 0;
+    for (Function::arg_iterator arg = func->arg_begin(); arg != func->arg_end(); ++arg, ++i) {
+        arg->setName(parameter_names[i]);
+    }
+
+    i = 0;
+    for(Function::arg_iterator arg = func->arg_begin(); arg != func->arg_end(); ++arg, ++i) {
+        std::string identifier = parameter_names[i];
+        AllocaInst *alloc = temp_builder.CreateAlloca(
+            compiler->builder.getInt64Ty(),
+            0, 
+            identifier
+        );
+
+        compiler->locals[compiler->level][identifier] = alloc;
+        compiler->builder.CreateStore(func->arg_begin() + i, alloc);
+    }
+
 
     Node *last = nullptr;
 

@@ -142,7 +142,7 @@ Stmt : TLET TIDENT TCOL TINT_DTYPE TEQUAL Expr TSCOL
      StmtList TRBRACE
      {
         std::vector<NodeDecl::DataType> param_types;
-        $$ = new NodeFunDef($2, param_types, $9, NodeDecl::INT);
+        $$ = new NodeFunDef($2, param_types, std::vector<std::string>(), $9, NodeDecl::INT);
         symbol_table.remove_scope();
      }
      | TFUN TIDENT TLPAREN TRPAREN TCOL TSHORT_DTYPE TLBRACE 
@@ -153,7 +153,7 @@ Stmt : TLET TIDENT TCOL TINT_DTYPE TEQUAL Expr TSCOL
      StmtList TRBRACE
      {
         std::vector<NodeDecl::DataType> param_types;
-        $$ = new NodeFunDef($2, param_types, $9, NodeDecl::SHORT);
+        $$ = new NodeFunDef($2, param_types, std::vector<std::string>(), $9, NodeDecl::SHORT);
         symbol_table.remove_scope();
      }
      | TFUN TIDENT TLPAREN TRPAREN TCOL TLONG_DTYPE TLBRACE 
@@ -164,7 +164,7 @@ Stmt : TLET TIDENT TCOL TINT_DTYPE TEQUAL Expr TSCOL
      StmtList TRBRACE
      {
         std::vector<NodeDecl::DataType> param_types;
-        $$ = new NodeFunDef($2, param_types, $9, NodeDecl::LONG);
+        $$ = new NodeFunDef($2, param_types, std::vector<std::string>(), $9, NodeDecl::LONG);
         symbol_table.remove_scope();
      }
      | TFUN TIDENT TLPAREN ParamDecl TRPAREN TCOL TINT_DTYPE TLBRACE 
@@ -193,7 +193,8 @@ Stmt : TLET TIDENT TCOL TINT_DTYPE TEQUAL Expr TSCOL
      StmtList TRBRACE
      {
          std::vector<NodeDecl::DataType> param_types = ((NodeParamDecl*)$4)->get_type_list();
-         $$ = new NodeFunDef($2, param_types, $10, NodeDecl::INT);
+         std::vector<std::string> param_names = ((NodeParamDecl*)$4)->get_node_list();
+         $$ = new NodeFunDef($2, param_types, param_names, $10, NodeDecl::INT);
          symbol_table.remove_scope();
      }
      | TFUN TIDENT TLPAREN ParamDecl TRPAREN TCOL TLONG_DTYPE TLBRACE 
@@ -222,7 +223,8 @@ Stmt : TLET TIDENT TCOL TINT_DTYPE TEQUAL Expr TSCOL
      StmtList TRBRACE
      {
          std::vector<NodeDecl::DataType> param_types = ((NodeParamDecl*)$4)->get_type_list();
-         $$ = new NodeFunDef($2, param_types, $10, NodeDecl::LONG);
+         std::vector<std::string> param_names = ((NodeParamDecl*)$4)->get_node_list();
+         $$ = new NodeFunDef($2, param_types, param_names, $10, NodeDecl::LONG);
          symbol_table.remove_scope();
      }
      | TFUN TIDENT TLPAREN ParamDecl TRPAREN TCOL TSHORT_DTYPE TLBRACE 
@@ -251,7 +253,8 @@ Stmt : TLET TIDENT TCOL TINT_DTYPE TEQUAL Expr TSCOL
      StmtList TRBRACE
      {
          std::vector<NodeDecl::DataType> param_types = ((NodeParamDecl*)$4)->get_type_list();
-         $$ = new NodeFunDef($2, param_types, $10, NodeDecl::SHORT);
+         std::vector<std::string> param_names = ((NodeParamDecl*)$4)->get_node_list();
+         $$ = new NodeFunDef($2, param_types, param_names, $10, NodeDecl::SHORT);
          symbol_table.remove_scope();
      }
 
