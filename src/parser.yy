@@ -266,7 +266,15 @@ Stmt : TLET TIDENT TCOL TINT_DTYPE { maxx=1; } TEQUAL Expr TSCOL
 
 Expr : TINT_LIT          
      { 
-        $$ = new NodeInt(stol($1)); }
+        long long int x = stol($1); 
+        if(maxx == 0)
+            x = (short)x;
+        else if(maxx == 1)
+            x = (int)x;
+        else
+            x = (long)x;
+        $$ = new NodeInt(x);
+     }
      | TIDENT
      { 
         if(symbol_table.contains_up($1))

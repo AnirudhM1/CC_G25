@@ -3,6 +3,16 @@
 #include <string>
 #include <vector>
 
+bool isNumber(std::string s) {
+    for (auto i : s) {
+        if (!isdigit(i)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 NodeBinOp::NodeBinOp(NodeBinOp::Op ope, Node *leftptr, Node *rightptr) {
     type = BIN_OP;
     op = ope;
@@ -11,6 +21,16 @@ NodeBinOp::NodeBinOp(NodeBinOp::Op ope, Node *leftptr, Node *rightptr) {
 }
 
 std::string NodeBinOp::to_string() {
+    if(isNumber(left->to_string()) && isNumber(right->to_string())) {
+        long l = std::stol(left->to_string());
+        long r = std::stol(right->to_string());
+        switch(op) {
+            case PLUS: return std::to_string(l + r);
+            case MINUS: return std::to_string(l - r);
+            case MULT: return std::to_string(l * r);
+            case DIV: return std::to_string(l / r);
+        }
+    }
     std::string out = "(";
     switch(op) {
         case PLUS: out += '+'; break;
@@ -88,6 +108,17 @@ NodeIfElse::NodeIfElse(Node *cond, Node *iftrue, Node *iffalse) {
     else_block = iffalse;
 }
 std::string NodeIfElse::to_string() {
+    if(isNumber(condition->to_string()))
+    {
+        if(condition->to_string() == "0")
+        {
+            return else_block->to_string();
+        }
+        else
+        {
+            return if_block->to_string();
+        }
+    }
     return "(if-else " + condition->to_string() + " " + if_block->to_string() + " " + else_block->to_string() + ")";
 }
 

@@ -88,6 +88,11 @@ int main(int argc, char *argv[]) {
 	fclose(yyin);
 
 	if(final_values) {
+
+		FILE *optimizedAST = fopen("bin/opt.txt", "w");
+		fprintf(optimizedAST, "%s", final_values->to_string().c_str());
+		fclose(optimizedAST);
+
 		if (arg_option == ARG_OPTION_P) {
 			std::cout << final_values->to_string() << std::endl;
 			return 0;

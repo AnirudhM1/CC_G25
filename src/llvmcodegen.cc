@@ -218,15 +218,7 @@ Value *NodeIfElse::llvm_codegen(LLVMCompiler *compiler) {
         "ifcont"
     );
 
-    BasicBlock *then_ret_bb = BasicBlock::Create(
-        *compiler->context,
-        "then_ret"
-    );
-
-    BasicBlock *else_ret_bb = BasicBlock::Create(
-        *compiler->context,
-        "else_ret"
-    );
+    
 
 
     compiler->builder.CreateCondBr(cond, then_bb, else_bb);
@@ -375,7 +367,7 @@ Value *NodeFunDef::llvm_codegen(LLVMCompiler *compiler) {
     // Otherwise create the function defination
 
     std::vector<Type *> args;
-    for(auto type : parameter_types) {
+    for(int i=0;i<(int)parameter_types.size();i++) {
         args.push_back(compiler->builder.getInt64Ty());
     }
 
